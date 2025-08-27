@@ -43,6 +43,25 @@ app.get('/health', (req, res) => {
     res.json({ status: 'OK', message: 'API is running', timestamp: new Date().toISOString() });
 });
 
+// Root - helpful message (prevents "Cannot GET /" confusion)
+app.get('/', (req, res) => {
+    res.json({
+        service: 'Credit Scoring API',
+        endpoints: ['/health', '/predict', '/predictions', '/model/info', '/db/test']
+    });
+});
+
+// DB connectivity test - runs a tiny query to confirm Postgres connection
+app.get('/db/test', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT 1 as ok');
+        res.json({ ok: true, db: result.rows });
+    } catch (err) {
+        console.error('DB test failed:', err && err.message ? err.message : err);
+        res.status(500).json({ ok: false, error: err && err.message ? err.message : String(err) });
+    }
+});
+
 // Model info endpoint
 app.get('/model/info', (req, res) => {
     res.json({

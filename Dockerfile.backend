@@ -1,0 +1,23 @@
+FROM node:18-alpine
+
+WORKDIR /usr/src/app
+
+# install deps
+COPY package.json package-lock.json* ./
+RUN npm ci --only=production || npm install --only=production
+
+# install netcat for wait-for script
+RUN apk add --no-cache netcat-openbsd
+
+# copy app
+COPY . .
+
+# copy wait script
+COPY scripts/wait-for-db.sh ./scripts/wait-for-db.sh
+RUN chmod +x ./scripts/wait-for-db.sh
+
+ENV PORT=8000
+
+EXPOSE 8000
+
+CMD ["sh", "./scripts/wait-for-db.sh"]
